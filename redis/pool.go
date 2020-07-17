@@ -229,6 +229,7 @@ func (p *Pool) GetContext(ctx context.Context) (Conn, error) {
 	for p.idle.front != nil {
 		pc := p.idle.front
 		p.idle.popFront()
+		p.active--
 		p.mu.Unlock()
 		if (p.TestOnBorrow == nil || p.TestOnBorrow(pc.c, pc.t) == nil) &&
 			(p.MaxConnLifetime == 0 || nowFunc().Sub(pc.created) < p.MaxConnLifetime) {
@@ -236,7 +237,7 @@ func (p *Pool) GetContext(ctx context.Context) (Conn, error) {
 		}
 		pc.c.Close()
 		p.mu.Lock()
-		p.active--
+		
 	}
 
 	// Check for pool closed before dialing a new connection.
